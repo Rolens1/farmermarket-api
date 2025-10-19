@@ -9,8 +9,8 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    // origin: 'https://farmermarket-web.vercel.app',
-    origin: true,
+    origin: 'https://farmermarket-web.vercel.app',
+    // origin: true,
     credentials: true,
   });
 
