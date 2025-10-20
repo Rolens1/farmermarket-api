@@ -18,6 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return await Promise.resolve({
       userId: payload.sub,
       email: payload.email,
+      role: payload.role,
     });
   }
 }
