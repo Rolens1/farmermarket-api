@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-export interface Product {
+export interface ProductInterface {
   id: string;
   name: string;
   description: string;
@@ -24,3 +24,15 @@ export interface CreateProductDto {
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}
+
+export interface SearchParams {
+  query?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  distance?: number;
+  pickupAvailable?: boolean;
+  deliveryAvailable?: boolean;
+  cursor?: string;
+  take?: number;
+}

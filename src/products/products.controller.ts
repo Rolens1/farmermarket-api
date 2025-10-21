@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 // import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CreateProductDto } from './types/product.types';
+import { CreateProductDto, SearchParams } from './types/product.types';
 
 @Controller('products')
 export class ProductsController {
@@ -39,7 +39,7 @@ export class ProductsController {
     return this.productsService.deleteProduct(req, id);
   }
 
-  @Get(':id')
+  @Get('i/:id')
   findProductById(@Param('id') id: string) {
     return this.productsService.findProductById(id);
   }
@@ -56,5 +56,12 @@ export class ProductsController {
     @Request() req,
   ) {
     return this.productsService.updateProduct(req, id, updateProductDto);
+  }
+
+  @Get('s/')
+  searchQuery(@Request() req) {
+    const params = req.query as unknown;
+    console.log('Search params:', params);
+    return this.productsService.searchQuery(params as SearchParams);
   }
 }

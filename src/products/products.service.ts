@@ -7,7 +7,8 @@ import { SupabaseService } from '../supabase/supabase.service';
 import {
   CreateProductDto,
   //   UpdateProductDto,
-  Product,
+  ProductInterface as Product,
+  SearchParams as ProductSearchParamsInterface,
 } from './types/product.types';
 
 @Injectable()
@@ -34,6 +35,80 @@ export class ProductsService {
       throw new Error('Invalid or expired access token');
     }
     return user.user.id;
+  }
+
+  async searchQuery(params: ProductSearchParamsInterface) {
+    const {
+      query,
+      category,
+      minPrice = 0,
+      maxPrice = 1000000,
+      distance,
+      pickupAvailable = false,
+      deliveryAvailable = false,
+      cursor,
+      take = 20,
+    } = params;
+
+    let supabaseQuery = this.getSupabaseClient()
+      .from('products')
+      .select(
+        `
+         *
+        `,
+        { count: 'exact' },
+      )
+      .eq('is_available', true)
+      .gte('price', minPrice)
+      .lte('price', maxPrice)
+      .order('created_at', { ascending: false })
+      .limit(Math.min(take, 50));
+
+    if (query) {
+      supabaseQuery = supabaseQuery.or(
+        `name.ilike.%${query}%,description.ilike.%${query}%`,
+      );
+    }
+    if (category) {
+      supabaseQuery = supabaseQuery.eq('category', category);
+    }
+
+    if (distance) {
+      // Assuming you have user's location stored in params as latitude and longitude
+      // You would need to adjust this part based on how you get user's location
+      const userLatitude = 0; // Replace with actual latitude
+      const userLongitude = 0; // Replace with actual longitude
+
+      supabaseQuery = supabaseQuery.filter(
+        'location',
+        'st_dwithin',
+        `st_makepoint(${userLongitude}, ${userLatitude})::geography, ${distance}`,
+      );
+    }
+
+    if (pickupAvailable) {
+      supabaseQuery = supabaseQuery.eq('pickup_available', true);
+    }
+
+    if (deliveryAvailable) {
+      supabaseQuery = supabaseQuery.eq('delivery_available', true);
+    }
+
+    if (cursor) {
+      supabaseQuery = supabaseQuery.lt('created_at', cursor);
+    }
+
+    const { data, error, count } = await supabaseQuery;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return {
+      products: data,
+      totalCount: count,
+      hasMore: data.length === take,
+      nextCursor: data.length > 0 ? data[data.length - 1].created_at : null,
+    };
   }
 
   async createProduct(
