@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Request,
   //   UseGuards,
@@ -30,5 +31,30 @@ export class ProductsController {
   @Get('user')
   findUserProducts(@Request() req) {
     return this.productsService.findUserProducts(req);
+  }
+
+  @Post('delete/:id')
+  //   @UseGuards(JwtAuthGuard)
+  deleteProduct(@Request() req, @Param('id') id: string) {
+    return this.productsService.deleteProduct(req, id);
+  }
+
+  @Get(':id')
+  findProductById(@Param('id') id: string) {
+    return this.productsService.findProductById(id);
+  }
+
+  @Get('slug/:slug')
+  findProductBySlug(@Param('slug') slug: string) {
+    return this.productsService.findBySlug(slug);
+  }
+
+  @Post('update/:id')
+  updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: Partial<CreateProductDto>,
+    @Request() req,
+  ) {
+    return this.productsService.updateProduct(req, id, updateProductDto);
   }
 }

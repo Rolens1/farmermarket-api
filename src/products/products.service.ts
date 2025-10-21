@@ -41,6 +41,7 @@ export class ProductsService {
     req: any,
   ): Promise<Product> {
     const seller_id = await this.getUserIdFromRequest(req);
+    const slug = generateSlug(createProductDto.name, seller_id);
 
     const { data, error: insertError } = await this.getSupabaseClient()
       .from('products')
@@ -49,6 +50,7 @@ export class ProductsService {
           ...createProductDto,
           seller_id,
           is_available: true,
+          slug,
         },
       ]);
 
@@ -86,4 +88,82 @@ export class ProductsService {
 
     return data as Product[];
   }
+
+  async deleteProduct(
+    req: any,
+    productId: string,
+  ): Promise<{ message: string }> {
+    const userId = await this.getUserIdFromRequest(req);
+    const { data, error } = await this.getSupabaseClient()
+      .from('products')
+      .delete()
+      .eq('id', productId)
+      .eq('seller_id', userId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { message: `Product deleted successfully ${data}` };
+  }
+
+  async updateProduct(
+    req: any,
+    productId: string,
+    updateProductDto: Partial<CreateProductDto>,
+  ): Promise<Product> {
+    const userId = await this.getUserIdFromRequest(req);
+    const { data, error } = await this.getSupabaseClient()
+      .from('products')
+      .update(updateProductDto)
+      .eq('id', productId)
+      .eq('seller_id', userId)
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data as Product;
+  }
+
+  async findProductById(productId: string): Promise<Product> {
+    const { data, error } = await this.getSupabaseClient()
+      .from('products')
+      .select()
+      .eq('id', productId)
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data as Product;
+  }
+
+  async findBySlug(slug: string): Promise<Product | null> {
+    const { data, error } = await this.getSupabaseClient()
+      .from('products')
+      .select() // seller:seller_id (id, full_name, email)
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data as Product;
+  }
+}
+
+function generateSlug(name: string, id: string): string {
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim() +
+    '-' +
+    id.slice(0, 4)
+  );
 }

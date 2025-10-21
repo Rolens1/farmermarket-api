@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
-// src/products/types/product.types.ts
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
-  image?: string;
+  imageUrl?: string;
   category: string;
   quantity: number;
   is_available: boolean;
@@ -21,6 +20,7 @@ export interface CreateProductDto {
   image?: string;
   category: string;
   quantity: number;
+  imageUrl?: string;
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}
