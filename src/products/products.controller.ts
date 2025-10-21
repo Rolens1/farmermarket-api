@@ -26,4 +26,9 @@ export class ProductsController {
   findAllProducts() {
     return this.productsService.findAllProducts();
   }
+
+  @Get('user')
+  findUserProducts(@Request() req) {
+    return this.productsService.findUserProducts(req);
+  }
 }

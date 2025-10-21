@@ -18,11 +18,7 @@ export class ProductsService {
     return this.supabaseService.getClient();
   }
 
-  async createProduct(
-    createProductDto: CreateProductDto,
-    req: any,
-  ): Promise<Product> {
-    // Extract the access token from the Authorization header
+  private async getUserIdFromRequest(req: any): Promise<string> {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ')
       ? authHeader.replace('Bearer ', '')
@@ -37,7 +33,14 @@ export class ProductsService {
     if (error || !user || !user.user) {
       throw new Error('Invalid or expired access token');
     }
-    const seller_id = user.user.id;
+    return user.user.id;
+  }
+
+  async createProduct(
+    createProductDto: CreateProductDto,
+    req: any,
+  ): Promise<Product> {
+    const seller_id = await this.getUserIdFromRequest(req);
 
     const { data, error: insertError } = await this.getSupabaseClient()
       .from('products')
@@ -62,6 +65,20 @@ export class ProductsService {
     const { data, error } = await this.getSupabaseClient()
       .from('products')
       .select();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data as Product[];
+  }
+
+  async findUserProducts(req: any): Promise<Product[]> {
+    const userId = await this.getUserIdFromRequest(req);
+    const { data, error } = await this.getSupabaseClient()
+      .from('products')
+      .select()
+      .eq('seller_id', userId);
 
     if (error) {
       throw new Error(error.message);
