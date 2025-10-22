@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ProductsService } from './products/products.service';
 import { ProductsController } from './products/products.controller';
 import { ProductsModule } from './products/products.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ProductsModule } from './products/products.module';
     SupabaseModule,
     AuthModule,
     ProductsModule,
+    CartModule,
   ],
   controllers: [AppController, ProductsController],
   providers: [AppService, SupabaseService, ProductsService],

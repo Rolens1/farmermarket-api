@@ -4,7 +4,7 @@ export interface ProductInterface {
   name: string;
   description: string;
   price: number;
-  imageUrl?: string;
+  imageUrl?: string[];
   category: string;
   quantity: number;
   is_available: boolean;
@@ -17,10 +17,10 @@ export interface CreateProductDto {
   name: string;
   description: string;
   price: number;
-  image?: string;
+  image?: string[];
   category: string;
   quantity: number;
-  imageUrl?: string;
+  imageUrl?: string[];
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> {}
