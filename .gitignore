@@ -61,3 +61,14 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 service/node_modules/
+
+/context/
+/docs/
+/scratch/
+memory.md
+.agents/
+.gemini/
+.claude/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
