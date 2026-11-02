@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Injectable,
   UnauthorizedException,
@@ -25,15 +26,20 @@ export class AuthService {
     });
 
     if (error) {
-      if (error.message.includes('already registered')) {
+      const msg = error.message?.toLowerCase() ?? '';
+      if (
+        msg.includes('already') ||
+        msg.includes('exist') ||
+        (error as any).error === 'AUTH_EMAIL_EXISTS'
+      ) {
         throw new ConflictException('Email is already registered');
       }
-      throw new BadRequestException(error.message);
+      throw new BadRequestException(error.message || 'Registration failed');
     }
 
     return {
-      user: data.user,
-      session: data.session,
+      user: data?.user ?? null,
+      session: data?.session ?? null,
     };
   }
 
@@ -44,8 +50,9 @@ export class AuthService {
       email,
       password,
     });
-    if (error) {
-      throw new UnauthorizedException('Invalid credentials');
+
+    if (error || !data?.session?.access_token) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     return {
@@ -56,8 +63,7 @@ export class AuthService {
   }
 
   async signOut() {
-    // use the supabase client getter and pass an object with the expected shape
-    const { error } = await this.getSupabase().auth.signOut({});
+    const { error } = await this.getSupabase().auth.signOut();
     if (error) {
       throw new UnauthorizedException('Failed to sign out');
     }
@@ -65,14 +71,10 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string) {
-    const { data, error } = await this.getSupabase().auth.refreshSession({
-      refresh_token: refreshToken,
-    });
-    if (error) {
+    const { data, error } =
+      await this.getSupabase().auth.refreshToken(refreshToken);
+    if (error || !data?.session) {
       throw new UnauthorizedException('Invalid refresh token');
-    }
-    if (!data.session) {
-      throw new UnauthorizedException('No session returned');
     }
     return {
       accessToken: data.session.access_token,
@@ -83,7 +85,7 @@ export class AuthService {
   async me(accessToken: string) {
     const { data, error } = await this.getSupabase().auth.getUser(accessToken);
 
-    if (error) {
+    if (error || !data?.user) {
       throw new UnauthorizedException('Invalid access token');
     }
 

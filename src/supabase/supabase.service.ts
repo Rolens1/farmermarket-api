@@ -46,13 +46,23 @@ export class SupabaseService implements OnModuleInit {
         signUp: async (opts: { email: string; password: string }) => {
           const client = await this.initClient();
           const res = await client.auth.signUp(opts);
-          if (res.error) throw res.error;
+          if (res.error || !res.data) {
+            return {
+              data: null,
+              error: res.error ?? new Error('Sign up failed'),
+            };
+          }
           return { data: res.data, error: null };
         },
         signInWithPassword: async (opts: { email: string; password: string }) => {
           const client = await this.initClient();
           const res = await client.auth.signInWithPassword(opts);
-          if (res.error) throw res.error;
+          if (res.error || !res.data?.accessToken) {
+            return {
+              data: null,
+              error: res.error ?? new Error('Invalid credentials'),
+            };
+          }
           return {
             data: {
               session: {
