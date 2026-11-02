@@ -9,23 +9,20 @@ export class SupabaseService implements OnModuleInit {
   private anonKey: string;
 
   constructor(private configService: ConfigService) {
-    const rawUrl =
-      this.configService.get<string>('INSFORGE_URL') ??
-      this.configService.get<string>('SUPABASE_URL');
-    // Guard: ignore old Supabase URL if still present in hosting environment
     this.baseUrl =
-      rawUrl && !rawUrl.includes('supabase.co')
-        ? rawUrl
-        : 'https://pprn26i7.us-east.insforge.app';
-
-    const rawKey =
-      this.configService.get<string>('INSFORGE_ANON_KEY') ??
-      this.configService.get<string>('SUPABASE_ANON_KEY');
-    // Guard: ignore old Supabase JWT token if still present in hosting environment
+      this.configService.get<string>('INSFORGE_URL') ||
+      this.configService.get<string>('SUPABASE_URL') ||
+      '';
     this.anonKey =
-      rawKey && !rawKey.startsWith('eyJ')
-        ? rawKey
-        : 'anon_d05d2e2d6987608e7786bd21c23125abd753514256ca0b2d4577447612f4e7db';
+      this.configService.get<string>('INSFORGE_ANON_KEY') ||
+      this.configService.get<string>('SUPABASE_ANON_KEY') ||
+      '';
+
+    if (!this.baseUrl || !this.anonKey) {
+      throw new Error(
+        'Missing database configuration: INSFORGE_URL and INSFORGE_ANON_KEY environment variables must be set.',
+      );
+    }
   }
 
   async onModuleInit() {

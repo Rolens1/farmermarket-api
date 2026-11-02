@@ -7,14 +7,16 @@ import { passportJwtSecret } from 'jwks-rsa';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
-    const rawUrl =
-      configService.get<string>('INSFORGE_URL') ??
-      configService.get<string>('SUPABASE_URL');
-    // Guard: ignore old Supabase URL if still present in hosting environment
     const insforgeUrl =
-      rawUrl && !rawUrl.includes('supabase.co')
-        ? rawUrl
-        : 'https://pprn26i7.us-east.insforge.app';
+      configService.get<string>('INSFORGE_URL') ||
+      configService.get<string>('SUPABASE_URL') ||
+      '';
+
+    if (!insforgeUrl) {
+      throw new Error(
+        'Missing JWT configuration: INSFORGE_URL or SUPABASE_URL must be set in environment variables.',
+      );
+    }
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
