@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import {
   CreateProductDto,
@@ -20,19 +20,22 @@ export class ProductsService {
   }
 
   private async getUserIdFromRequest(req: any): Promise<string> {
-    const authHeader = req.headers.authorization || '';
+    if (req.user?.userId) {
+      return req.user.userId;
+    }
+    const authHeader = req.headers?.authorization || '';
     const token = authHeader.startsWith('Bearer ')
       ? authHeader.replace('Bearer ', '')
       : authHeader;
 
     if (!token) {
-      throw new Error('Access token is required');
+      throw new UnauthorizedException('Access token is required');
     }
 
     const { data: user, error } =
       await this.getSupabaseClient().auth.getUser(token);
     if (error || !user || !user.user) {
-      throw new Error('Invalid or expired access token');
+      throw new UnauthorizedException('Invalid or expired access token');
     }
     return user.user.id;
   }
@@ -147,7 +150,7 @@ export class ProductsService {
       throw new Error(error.message);
     }
 
-    return data as Product[];
+    return (data || []) as Product[];
   }
 
   async findUserProducts(req: any): Promise<Product[]> {
@@ -161,7 +164,7 @@ export class ProductsService {
       throw new Error(error.message);
     }
 
-    return data as Product[];
+    return (data || []) as Product[];
   }
 
   async deleteProduct(
