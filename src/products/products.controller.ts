@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   Request,
-  //   UseGuards,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ProductsService } from './products.service';
-// import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateProductDto, SearchParams } from './types/product.types';
 
 @Controller('products')
@@ -18,7 +18,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post('create')
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   createProduct(@Body() createProductDto: CreateProductDto, @Request() req) {
     return this.productsService.createProduct(createProductDto, req);
   }
@@ -29,13 +29,21 @@ export class ProductsController {
   }
 
   @Get('user')
+  @UseGuards(AuthGuard('jwt'))
   findUserProducts(@Request() req) {
     return this.productsService.findUserProducts(req);
   }
 
-  @Post('delete/:id')
-  //   @UseGuards(JwtAuthGuard)
+  @Delete('delete/:id')
+  @UseGuards(AuthGuard('jwt'))
   deleteProduct(@Request() req, @Param('id') id: string) {
+    return this.productsService.deleteProduct(req, id);
+  }
+
+  // Keep POST alias for backward compatibility with existing frontend calls
+  @Post('delete/:id')
+  @UseGuards(AuthGuard('jwt'))
+  deleteProductPost(@Request() req, @Param('id') id: string) {
     return this.productsService.deleteProduct(req, id);
   }
 
@@ -49,8 +57,20 @@ export class ProductsController {
     return this.productsService.findBySlug(slug);
   }
 
-  @Post('update/:id')
+  @Patch('update/:id')
+  @UseGuards(AuthGuard('jwt'))
   updateProduct(
+    @Param('id') id: string,
+    @Body() updateProductDto: Partial<CreateProductDto>,
+    @Request() req,
+  ) {
+    return this.productsService.updateProduct(req, id, updateProductDto);
+  }
+
+  // Keep POST alias for backward compatibility with existing frontend calls
+  @Post('update/:id')
+  @UseGuards(AuthGuard('jwt'))
+  updateProductPost(
     @Param('id') id: string,
     @Body() updateProductDto: Partial<CreateProductDto>,
     @Request() req,
@@ -61,7 +81,6 @@ export class ProductsController {
   @Get('s/')
   searchQuery(@Request() req) {
     const params = req.query as unknown;
-    console.log('Search params:', params);
     return this.productsService.searchQuery(params as SearchParams);
   }
 }

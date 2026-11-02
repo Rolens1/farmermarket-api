@@ -1,9 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignupDto } from './dto/signup.dto';
 import { AuthService } from './auth.service';
 import { SigninDto } from './dto/signin.dto';
-import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -30,18 +38,12 @@ export class AuthController {
     return this.authService.refreshToken(refreshToken);
   }
 
-  private extractToken(req: any): string {
-    const authHeader = req.headers.authorization as string;
-    if (!authHeader) {
-      throw new Error('Authorization header not found');
-    }
-    return authHeader.replace('Bearer ', '');
-  }
-
   @Get('me')
-  //   @UseGuards(AuthGuard('jwt'))
-  async me(@Req() req: any) {
-    const accessToken = this.extractToken(req);
+  @UseGuards(AuthGuard('jwt'))
+  async me(@Req() req: { headers: { authorization?: string } }) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new UnauthorizedException('No authorization header');
+    const accessToken = authHeader.replace('Bearer ', '');
     return this.authService.me(accessToken);
   }
 }

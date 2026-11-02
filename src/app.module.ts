@@ -3,12 +3,9 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SupabaseService } from './supabase/supabase.service';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { ProductsService } from './products/products.service';
-import { ProductsController } from './products/products.controller';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 
@@ -23,7 +20,7 @@ import { CartModule } from './cart/cart.module';
     ProductsModule,
     CartModule,
   ],
-  controllers: [AppController, ProductsController],
-  providers: [AppService, SupabaseService, ProductsService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
